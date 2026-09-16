@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 
 namespace MyLittleRPG_Etape2
@@ -9,30 +8,33 @@ namespace MyLittleRPG_Etape2
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Connexion à la base de données
             builder.Services.AddDbContext<Data.Context.MonsterContext>(options =>
             {
-                string connectionString = builder.Configuration.GetConnectionString("Default");
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                string connectionString =
+                    builder.Configuration.GetConnectionString("Default");
+
+                options.UseMySql(
+                    connectionString,
+                    ServerVersion.AutoDetect(connectionString)
+                );
             });
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

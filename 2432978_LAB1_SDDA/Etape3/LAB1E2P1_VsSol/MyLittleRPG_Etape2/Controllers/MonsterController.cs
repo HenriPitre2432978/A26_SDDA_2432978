@@ -10,13 +10,13 @@ namespace MyLittleRPG_Etape2.Controllers
     public class MonsterController : ControllerBase
     {
         private readonly MonsterContext _context;
-        public MonsterController(MonsterController context) => _context = context;
+        public MonsterController(MonsterContext context) => _context = context;
 
 
         //GET api/Monsters
         [HttpGet]
-        public async Task<ActionResult<Monster>> GetMonster()
-            => await _context.Monsters.ToListAsync();
+        public async Task<ActionResult<IEnumerable<Monster>>> GetMonster()
+            => Ok(await _context.Monster.ToListAsync());
 
         //GET api/Monsters/5
         [HttpGet("{id}")]
@@ -87,7 +87,7 @@ namespace MyLittleRPG_Etape2.Controllers
 
         private bool MonsterExists(int id)
             => _context.Monster.Any(e => e.idMonster == id);
+    }
+
 }
 
-    }
-}
