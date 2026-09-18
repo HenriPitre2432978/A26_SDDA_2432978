@@ -1,0 +1,34 @@
+.layout {
+  display: flex;
+}
+
+aside {
+  width: 30vw;
+}
+
+main {
+  flex-grow: 1;
+}
+
+#map-grid {
+  padding: 2%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 3px;
+}
+
+.tile {
+  border-radius: 5%;
+  aspect-ratio: 1;
+  color: white;
+  background-color: black;
+  opacity: 100%;
+  font-size: 500%;
+}
+
+.tile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

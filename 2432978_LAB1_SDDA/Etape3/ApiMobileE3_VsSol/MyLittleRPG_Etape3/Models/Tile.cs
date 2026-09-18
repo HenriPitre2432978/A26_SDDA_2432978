@@ -10,16 +10,20 @@ namespace MyLittleRPG_Etape3.Models
         public int X { get; set; }
         public int Y { get; set; }
         public TileType Type { get; set; }
+        public string TypeTxt { get; set; }
         public bool CanPass { get; set; }
         public string Description { get; set; }
+        public string ImgUrl { get; set; }
 
-        public Tile(int x, int y, TileType type, bool canPass, string description)
+        public Tile(int x, int y, TileType type, bool canPass, string description, string imgUrl)
         {
             X = x;
             Y = y;
             Type = type;
+            TypeTxt = Enum.GetName(type) ?? "N/A";
             CanPass = canPass;
             Description = description;
+            ImgUrl = imgUrl;
         }
     }
 }

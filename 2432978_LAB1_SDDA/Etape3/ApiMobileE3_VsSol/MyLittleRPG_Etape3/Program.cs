@@ -16,6 +16,16 @@ namespace MyLittleRPG_Etape3
                 options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
             });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllLocal", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
             builder.Services.AddControllers();
 
             builder.Services.AddEndpointsApiExplorer();
@@ -30,6 +40,10 @@ namespace MyLittleRPG_Etape3
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseCors("AllowAllLocal");
+
             app.UseAuthorization();
             app.MapControllers();
 

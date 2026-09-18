@@ -23,10 +23,10 @@ namespace MyLittleRPG_Etape3.Controllers
             if (tile == null)
             {
                 //Créer nouvelle tuile
-                Random r = new Random();
+                Random r = new();
                 TileType type = (TileType)r.Next(0, Enum.GetValues(typeof(TileType)).Length);
 
-                tile = new Tile(x, y, type, type.IsPassable(), $"Tuile {Enum.GetName(type)} en position ({x},{y})."); ;
+                tile = new Tile(x, y, type, type.IsPassable(), $"Tuile {Enum.GetName(type)} en position ({x},{y}).", type.ImgUrl()); ;
             }
 
 
