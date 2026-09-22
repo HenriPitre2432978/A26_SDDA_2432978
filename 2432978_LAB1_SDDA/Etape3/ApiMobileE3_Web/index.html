@@ -31,7 +31,7 @@
 
   <body class="bg-dark text-white">
     <header>
-    <!--#region Titre/Soustitre -->
+      <!--#region Titre/Soustitre -->
       <div class="m-5 text-center rounded-pill bg-primary bg-opacity-10 p-3">
         <h1>
           <strong
@@ -39,12 +39,13 @@
           </strong>
         </h1>
         <p>
-          Explorez le monde généré par votre API | <strong> 📍: (10,10)</strong>
+          Explorez le monde généré par votre API |
+          <strong> 📍: <span id="posTop">(X,Y)</span></strong>
         </p>
       </div>
-    <!--#endregion-->
+      <!--#endregion-->
     </header>
-    
+
     <div class="layout">
       <aside class="m-4">
         <!--#region Side Menu-->
@@ -201,48 +202,48 @@
             id="tuile-pos"
             class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
             Position:
-            <span id="info-chargees-value">(X,Y)</span>
+            <span id="tuile-pos-value">(X,Y)</span>
           </p>
           <p
             id="tuile-type"
             class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
             Type:
-            <span id="info-chargees-value">X</span>
+            <span id="tuile-type-value">X</span>
           </p>
           <p
             id="tuile-passable"
             class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
             Traversable:
-            <span id="info-chargees-value">✅/❌</span>
+            <span id="tuile-passable-value">✅/❌</span>
           </p>
           <div class="bg-white bg-opacity-10 p-2 rounded-4">
-          <p
-            id="tuile-desc"
-            class="rounded-3 d-flex justify-content-between  pt-2 px-2">
-            Description:
+            <p
+              id="tuile-desc"
+              class="rounded-3 d-flex justify-content-between pt-2 px-2">
+              Description:
+            </p>
             <div
-              id="info-chargees-value"
-              class="rounded-3 px-3 py-2 bg-opacity-10 bg-white"
-              >Tuile [type] en position (X,Y)</div
-            >
-          </p>
+              id="tuile-desc-value"
+              class="rounded-3 px-3 py-2 bg-opacity-10 bg-white">
+              Tuile [type] en position (X,Y)
+            </div>
           </div>
         </div>
-      <!--#endregion-->
+        <!--#endregion-->
       </aside>
       <main class="m-4 bg-primary rounded-5 p-3 bg-opacity-10">
         <!--#region Map-->
-          <div class="d-flex gap-2">
-            <h2 class="mb-0">🗺️Carte du Monde</h2>
-            <small
-              id="zone-affiche"
-              class="bg-dark ms-auto px-4 py-2 bg-opacity-40 rounded-pill text-white">
-              <strong>Zone: (10,10)➡️(15,15) </strong>
-            </small>
-          </div>
-        
-          <!--Map container filled in js-->
-          <div id="map-grid"></div>
+        <div class="d-flex gap-2">
+          <h2 class="mb-0">🗺️Carte du Monde</h2>
+          <small
+            id="zone-affiche"
+            class="bg-dark ms-auto px-4 py-2 bg-opacity-40 rounded-pill text-white">
+            <strong>Zone: (10,10)➡️(15,15) </strong>
+          </small>
+        </div>
+
+        <!--Map container filled in js-->
+        <div id="map-grid"></div>
         <!--#endregion-->
       </main>
     </div>

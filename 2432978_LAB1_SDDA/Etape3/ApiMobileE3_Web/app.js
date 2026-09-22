@@ -23,19 +23,29 @@ $(function () {
     }
   });
 });
-
 $("#map-grid").on("click", ".tile", function () {
   const $tuile = $(this);
+  const x = $tuile.data("x");
+  const y = $tuile.data("y");
+
   if ($tuile.hasClass("tile-loaded")) {
-    afficherSelection(
-      $tuile.data("tuileInfo"),
-      $tuile.data("x"),
-      $tuile.data("y"),
-    );
+    afficherSelection($tuile.data("tuileInfo"), x, y);
   } else {
-    chargerTuile($tuile.data("x"), $tuile.data("y"), $tuile);
+    chargerTuile(x, y, $tuile).done(function (data) {
+      afficherSelection(data, x, y);
+    });
   }
 });
+
+function afficherSelection(data, x, y) {
+  $("#posTop").text(`(${x}, ${y})`);
+  $("#tuile-pos-value").text(`(${x}, ${y})`);
+  $("#tuile-type-value").text(data.typeTxt);
+  $("#tuile-passable-value").text(data.isTraversable ? "✅" : "❌");
+  $("#tuile-desc-value").text(
+    data.description || `Tuile ${data.typeTxt} en position (${x},${y})`,
+  );
+}
 
 function creerTuile(x, y) {
   const $existing = $(`.tile[data-x="${x}"][data-y="${y}"]`);

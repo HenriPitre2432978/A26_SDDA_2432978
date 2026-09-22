@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MyLittleRPG_Etape3.Data.Context;
 using MyLittleRPG_Etape3.Models;
 using MyLittleRPG_Etape3.Models.Enums;
+using Weighted_Randomizer;
 
 namespace MyLittleRPG_Etape3.Controllers
 {
@@ -23,12 +25,17 @@ namespace MyLittleRPG_Etape3.Controllers
             if (tile == null)
             {
                 //Créer nouvelle tuile
-                Random r = new();
-                TileType type = (TileType)r.Next(0, Enum.GetValues(typeof(TileType)).Length);
+                //https://github.com/BlueRaja/Weighted-Item-Randomizer-for-C-Sharp/wiki/Getting-Started
 
-                tile = new Tile(x, y, type, type.IsPassable(), $"Tuile {Enum.GetName(type)} en position ({x},{y}).", type.ImgUrl()); ;
+                DynamicWeightedRandomizer<string> r = [];
+                foreach (TileType type in Enum.GetValues<TileType>())
+                    r.Add(Enum.GetName(type) ?? "N/A", type.Weight());
+
+                string chosenTypeTxt = r.NextWithReplacement();
+                TileType current = (TileType)Enum.Parse(typeof(TileType), chosenTypeTxt);
+
+                tile = new(x, y, current, current.IsTraversable(), $"Tuile {Enum.GetName(current)} en position ({x},{y}).", current.ImgUrl()); ;
             }
-
 
             return tile;
         }

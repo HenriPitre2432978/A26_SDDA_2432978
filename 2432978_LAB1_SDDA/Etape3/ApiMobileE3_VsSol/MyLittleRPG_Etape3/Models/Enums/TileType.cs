@@ -11,28 +11,34 @@
     }
     public static class TileTypeExtensions
     {
-        // Méthode d'extension pratique ; on peut l'appeler comme tile.IsPassable()
-        public static bool IsPassable(this TileType t) => t != TileType.Eau && t != TileType.Montagne;
+        public static bool IsTraversable(this TileType t) => t != TileType.Eau && t != TileType.Montagne;
 
         public static string ImgUrl(this TileType t)
         {
-            switch (t)
+            return t switch
             {
-                case TileType.Herbe:
-                    return "/images/Plains.png";
-                case TileType.Eau:
-                    return "/images/River.png";
-                case TileType.Montagne:
-                    return "/images/Mountain.png";
-                case TileType.Forêt:
-                    return "/images/Forest.png";
-                case TileType.Ville:
-                    return "/images/Town.png";
-                case TileType.Route:
-                    return "/images/Road.png";
-                default:
-                    return string.Empty;
-            }
+                TileType.Herbe => "/images/Plains.png",
+                TileType.Eau => "/images/River.png",
+                TileType.Montagne => "/images/Mountain.png",
+                TileType.Forêt => "/images/Forest.png",
+                TileType.Ville => "/images/Town.png",
+                TileType.Route => "/images/Road.png",
+                _ => string.Empty,
+            };
+        }
+
+        public static int Weight(this TileType t)
+        {
+            return t switch
+            {
+                TileType.Herbe => 20,
+                TileType.Eau => 10,
+                TileType.Montagne => 15,
+                TileType.Forêt => 15,
+                TileType.Ville => 5,
+                TileType.Route => 35,
+                _ => 0,
+            };
         }
     }
 }
