@@ -1,13 +1,15 @@
 .layout {
   display: flex;
+  flex-wrap: wrap;
 }
 
 aside {
-  width: 30vw;
+  flex: 1 1 300px;
 }
 
 main {
-  flex-grow: 1;
+  flex: 3 1 500px; /* takes ~3x more space; wraps below when < 500px fits */
+  min-width: 0;
 }
 
 #map-grid {
@@ -18,13 +20,17 @@ main {
   gap: 3px;
 }
 
+#map-grid > * {
+  aspect-ratio: 1/1;
+}
+
 .tile {
   border-radius: 5%;
   aspect-ratio: 1;
   color: white;
   background-color: black;
   opacity: 100%;
-  font-size: 500%;
+  font-size: 100%;
 }
 
 .tile-img {
