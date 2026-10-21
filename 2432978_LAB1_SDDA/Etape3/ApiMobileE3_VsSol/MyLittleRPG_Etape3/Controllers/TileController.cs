@@ -34,7 +34,11 @@ namespace MyLittleRPG_Etape3.Controllers
                 string chosenTypeTxt = r.NextWithReplacement();
                 TileType current = (TileType)Enum.Parse(typeof(TileType), chosenTypeTxt);
 
-                tile = new(x, y, current, current.IsTraversable(), $"Tuile {Enum.GetName(current)} en position ({x},{y}).", current.ImgUrl()); ;
+                tile = new(x, y, current, current.IsTraversable(), $"Tuile {Enum.GetName(current)} en position ({x},{y}).", current.ImgUrl());
+
+                //Save new tile to db
+                _context.Tile.Add(tile);
+                await _context.SaveChangesAsync();
             }
 
             return tile;
