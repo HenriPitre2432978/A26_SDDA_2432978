@@ -6,7 +6,7 @@ using MyLittleRPG_Etape4.Models;
 namespace MyLittleRPG_Etape4.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class MonsterController : ControllerBase
     {
         private readonly RPGContext _context;

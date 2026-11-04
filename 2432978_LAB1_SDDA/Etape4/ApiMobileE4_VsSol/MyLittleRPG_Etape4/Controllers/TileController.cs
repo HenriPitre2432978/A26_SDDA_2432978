@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore;
 using MyLittleRPG_Etape4.Data.Context;
 using MyLittleRPG_Etape4.Models;
 using MyLittleRPG_Etape4.Models.Enums;
@@ -9,17 +8,19 @@ using Weighted_Randomizer;
 namespace MyLittleRPG_Etape4.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class TileController : ControllerBase
     {
         private readonly RPGContext _context;
         public TileController(RPGContext context) => _context = context;
 
-
-        //GET api/Tiles/5
+        //GET api/Tile/5/5
         [HttpGet("{x}/{y}")]
         public async Task<ActionResult<Tile>> GetTile(int x, int y)
         {
+            if (!WorldConfig.IsValid(x, y))
+                return NotFound();
+
             var tile = await _context.Tile.FindAsync(x, y);
 
             if (tile == null)
