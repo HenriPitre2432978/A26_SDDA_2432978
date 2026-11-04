@@ -1,22 +1,44 @@
 const API_BASE_URL = "https://localhost:64984";
 
+// Constante qui = WorldCOnfig dans API
+const WORLD_WIDTH = 50;
+const WORLD_HEIGHT = 50;
+
+// arte affichée (coin haut-gauche + taille)
+const SQUARE_VIEW = 5;
+let MiddleXView = 10;
+let MiddleYView = 10;
+
 //Fct au démarrage (loading)
 $(function () {
   let $startTuile;
 
-  for (let y = 10; y < 15; y++) {
-    for (let x = 10; x < 15; x++) {
+  majInfosStatiques();
+
+  for (let y = MiddleYView; y < MiddleYView + SQUARE_VIEW; y++) {
+    for (let x = MiddleXView; x < MiddleXView + SQUARE_VIEW; x++) {
       const $tuile = creerTuile(x, y);
-      if (x === 10 && y === 10) {
+      if (x === MiddleXView && y === MiddleYView) {
         $startTuile = $tuile;
       }
     }
   }
 
-  chargerTuile(10, 10, $startTuile).done(function () {
-    const neighbors = getNeighboringTiles(10, 10, 50, 50);
+  chargerTuile(MiddleXView, MiddleYView, $startTuile).done(function () {
+    const neighbors = getNeighboringTiles(
+      MiddleXView,
+      MiddleYView,
+      WORLD_WIDTH,
+      WORLD_HEIGHT,
+    );
     for (const n of neighbors) {
-      if (n.x < 10 || n.x > 14 || n.y < 10 || n.y > 14) continue;
+      if (
+        n.x < MiddleXView ||
+        n.x >= MiddleXView + SQUARE_VIEW ||
+        n.y < MiddleYView ||
+        n.y >= MiddleYView + SQUARE_VIEW
+      )
+        continue;
 
       const $neighborTuile = creerTuile(n.x, n.y);
       chargerTuile(n.x, n.y, $neighborTuile);
@@ -36,6 +58,27 @@ $("#map-grid").on("click", ".tile", function () {
     });
   }
 });
+
+function majInfosStatiques() {
+  $("#info-taille-value").text(`${WORLD_WIDTH} × ${WORLD_HEIGHT}`);
+  $("#info-zone-value").text(`${SQUARE_VIEW}x${SQUARE_VIEW} tuiles`);
+  $("#zone-affiche").html(
+    `<strong>Zone: (${MiddleXView},${MiddleYView})➡️(${MiddleXView + SQUARE_VIEW - 1},${MiddleYView + SQUARE_VIEW - 1})</strong>`,
+  );
+  majTuilesChargees();
+}
+
+function majTuilesChargees() {
+  $("#info-chargees-value").text(
+    `${$(".tile-loaded").length} / ${SQUARE_VIEW * SQUARE_VIEW}`,
+  );
+}
+
+function majStatutApi(ok) {
+  $("#info-status-value")
+    .text(ok ? "Connecté" : "Hors ligne")
+    .css("color", ok ? "limegreen" : "red");
+}
 
 function afficherSelection(data, x, y) {
   $("#posTop").text(`(${x}, ${y})`);
@@ -61,10 +104,12 @@ function creerTuile(x, y) {
 }
 
 function chargerTuile(x, y, $tuile) {
-  return $.getJSON(`${API_BASE_URL}/Tile/${x}/${y}`)
+  return $.getJSON(`${API_BASE_URL}/api/Tile/${x}/${y}`)
     .done(function (data) {
       $tuile.data("tuileInfo", data);
       $tuile.removeClass("tile-unloaded").addClass("tile-loaded");
+      majStatutApi(true);
+      majTuilesChargees();
 
       if (data.imgUrl) {
         const $img = $("<img>", {
@@ -79,6 +124,8 @@ function chargerTuile(x, y, $tuile) {
       }
     })
     .fail(function (xhr, textStatus, error) {
+      // 404 = hors du monde, l'API répond quand même
+      majStatutApi(xhr.status !== 0);
       console.error(
         `[Grid Error] Could not load position (${x}, ${y}):`,
         error,
