@@ -1,83 +1,108 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using MyLittleRPG_Etape4.Data.Context;
+using MyLittleRPG_Etape4.Models;
+using MyLittleRPG_Etape4.Models.DTO;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace MyLittleRPG_Etape4.Controllers
 {
-    public class AuthController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController(RPGContext context, IConfiguration config) : ControllerBase
     {
-        // GET: AuthController
-        public ActionResult Index()
-        {
-            return View();
-        }
+        private readonly RPGContext _context = context;
+        private readonly IConfiguration _config = config;
+        private readonly PasswordHasher<Utilisateur> _hasher = new();
 
-        // GET: AuthController/Details/5
-        public ActionResult Details(int id)
+        // POST api/Auth/register
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegisterRequest r)
         {
-            return View();
-        }
+            string email = r.Email.Trim().ToLower();
 
-        // GET: AuthController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
+            //find if unique existing email
+            if (await _context.Utilisateur.AnyAsync(u => u.Email == email))
+                return BadRequest(new { message = "Un compte existe déjà avec ce courriel." });
 
-        // POST: AuthController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
+            //Create user no pwd
+            Utilisateur user = new()
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+                Email = email,
+                Pseudo = r.Pseudo.Trim()
+            };
+
+            //set pwd to hashed request pwd input
+            user.MotDePasse = _hasher.HashPassword(user, r.MotDePasse);
+
+            // créer perso du user
+            user.Personnage = new Personnage { Nom = user.Pseudo };
+
+            //Save all (perso+user)
+            _context.Utilisateur.Add(user);
+            await _context.SaveChangesAsync();
+
+            //200 ok
+            return StatusCode(StatusCodes.Status201Created, new { user.idUtilisateur, user.Pseudo });
         }
 
-        // GET: AuthController/Edit/5
-        public ActionResult Edit(int id)
+        // POST api/Auth/login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginRequest r)
         {
-            return View();
+            string email = r.Email.Trim().ToLower();
+
+            Utilisateur? user = await _context.Utilisateur.FirstOrDefaultAsync(u => u.Email == email);
+            
+            PasswordVerificationResult result = new(); 
+            if (user != null)
+                result = _hasher.VerifyHashedPassword(user, user.MotDePasse, r.MotDePasse);
+            
+            // si mauvais courriel ou mauvais mdp
+            if (user == null || result == PasswordVerificationResult.Failed)
+                return Unauthorized(new { message = "Courriel ou mot de passe invalide." });
+
+            //200 OK et link le token à user
+            return Ok(new { token = CreerToken(user), pseudo = user.Pseudo });
         }
 
-        // POST: AuthController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        // créer token jwt
+        private string CreerToken(Utilisateur user)
         {
-            try
+            //infos publiques token
+            var claims = new[]
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+                new Claim(ClaimTypes.NameIdentifier, user.idUtilisateur.ToString()),
+                new Claim(ClaimTypes.Name, user.Pseudo)
+            };
+
+            //parse clé appsettings en clé jwt
+            SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+
+            // créer jeton tel que program.cs à partir de jwt appsettings
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(_config.GetValue<int>("Jwt:ExpireMinutes")),
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            // serialiser token en format comprehensible
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        // GET: AuthController/Delete/5
-        public ActionResult Delete(int id)
+        // POST api/Auth/logout
+        [Authorize]
+        [HttpPost("logout")]
+        public IActionResult Logout()
         {
-            return View();
-        }
-
-        // POST: AuthController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            //rien a faire car token jamais saved par le programme
+            return NoContent();
         }
     }
 }

@@ -69,7 +69,7 @@ namespace MyLittleRPG_Etape4.Controllers
             return CreatedAtAction("GetMonster", new { id = m.idMonster }, m);
         }
 
-        //PUT api/Monsters/5
+        //DELETE api/Monsters/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Monster>> DeleteMonster(int id)
         {
