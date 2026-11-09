@@ -39,16 +39,122 @@
           </strong>
         </h1>
         <p>
-          Explorez le monde généré par votre API |
-          <strong> 📍: <span id="posTop">(X,Y)</span></strong>
+          Explorez le monde généré par votre API
+          <strong id="pos-header" style="display: none">| 📍: <span id="posTop">(X,Y)</span></strong>
+          <br>
+          DÉMO: Courriel : admin@mylittlerpg.com / PWD: admin1234
         </p>
+        <button
+          id="btn-logout"
+          class="btn btn-outline-light btn-sm rounded-pill px-3"
+          style="display: none">
+          Déconnexion
+        </button>
       </div>
       <!--#endregion-->
     </header>
 
-    <div class="layout">
+    <!--#region Connexion / Inscription-->
+    <div id="auth-section">
+      <div class="d-flex flex-wrap justify-content-center gap-4 m-4">
+        <form
+          id="form-login"
+          class="rounded-5 bg-primary bg-opacity-10 p-4"
+          style="width: 350px">
+          <h3><strong>🔑 Connexion</strong></h3>
+          <hr />
+          <input
+            id="login-email"
+            type="email"
+            class="form-control mb-2"
+            placeholder="Courriel"
+            required />
+          <input
+            id="login-mdp"
+            type="password"
+            class="form-control mb-3"
+            placeholder="Mot de passe"
+            required />
+          <button type="submit" class="btn btn-light w-100">Se connecter</button>
+        </form>
+
+        <form
+          id="form-register"
+          class="rounded-5 bg-primary bg-opacity-10 p-4"
+          style="width: 350px">
+          <h3><strong>📝 Inscription</strong></h3>
+          <hr />
+          <input
+            id="register-pseudo"
+            type="text"
+            class="form-control mb-2"
+            placeholder="Pseudo"
+            maxlength="45"
+            required />
+          <input
+            id="register-email"
+            type="email"
+            class="form-control mb-2"
+            placeholder="Courriel"
+            required />
+          <input
+            id="register-mdp"
+            type="password"
+            class="form-control mb-3"
+            placeholder="Mot de passe (8 caractères min.)"
+            minlength="8"
+            required />
+          <button type="submit" class="btn btn-light w-100">S'inscrire</button>
+        </form>
+
+        <p id="auth-message" class="w-100 text-center text-warning"></p>
+      </div>
+    </div>
+    <!--#endregion-->
+
+    <div class="layout" id="jeu" style="display: none">
       <aside class="m-4">
         <!--#region Side Menu-->
+        <div class="rounded-5 bg-primary bg-opacity-10 p-4 mb-4">
+          <h3><strong>🧙 Personnage</strong></h3>
+          <hr />
+          <p
+            class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
+            Nom:
+            <span id="perso-nom">-</span>
+          </p>
+          <p
+            class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
+            Niveau:
+            <span id="perso-niveau">-</span>
+          </p>
+          <p
+            class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
+            Expérience:
+            <span id="perso-xp">-</span>
+          </p>
+          <p
+            class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
+            Points de vie:
+            <span id="perso-pv">-</span>
+          </p>
+          <p
+            class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
+            Force:
+            <span id="perso-force">-</span>
+          </p>
+          <p
+            class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
+            Défense:
+            <span id="perso-defense">-</span>
+          </p>
+          <p
+            class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
+            Position:
+            <span id="perso-pos">-</span>
+          </p>
+        </div>
+
         <div class="rounded-5 bg-primary bg-opacity-10 p-4">
           <h3><strong>📊Informations</strong></h3>
           <hr />
@@ -110,6 +216,7 @@
               S
             </button>
           </div>
+          <p id="deplacement-message" class="text-warning text-center mt-2 mb-0"></p>
         </div>
 
         <div class="rounded-5 bg-primary bg-opacity-10 p-4 mt-4">
@@ -193,6 +300,10 @@
               "></span>
             <span>Non traversable</span>
           </div>
+          <div
+            class="d-flex align-items-center gap-2 rounded-3 bg-white bg-opacity-10 p-2 mt-2">
+            <span>🟨 Votre personnage</span>
+          </div>
         </div>
 
         <div class="rounded-5 bg-primary bg-opacity-10 p-4 mt-4">
@@ -202,19 +313,19 @@
             id="tuile-pos"
             class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
             Position:
-            <span id="tuile-pos-value">(X,Y)</span>
+            <span id="tuile-pos-value">-</span>
           </p>
           <p
             id="tuile-type"
             class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
             Type:
-            <span id="tuile-type-value">X</span>
+            <span id="tuile-type-value">-</span>
           </p>
           <p
             id="tuile-passable"
             class="rounded-3 d-flex justify-content-between bg-white bg-opacity-10 p-2">
             Traversable:
-            <span id="tuile-passable-value">✅/❌</span>
+            <span id="tuile-passable-value">-</span>
           </p>
           <div class="bg-white bg-opacity-10 p-2 rounded-4">
             <p
@@ -225,7 +336,7 @@
             <div
               id="tuile-desc-value"
               class="rounded-3 px-3 py-2 bg-opacity-10 bg-white">
-              Tuile [type] en position (X,Y)
+              Cliquez sur une tuile de la carte
             </div>
           </div>
         </div>
@@ -238,7 +349,7 @@
           <small
             id="zone-affiche"
             class="bg-dark ms-auto px-4 py-2 bg-opacity-40 rounded-pill text-white">
-            <strong>Zone: (10,10)➡️(15,15) </strong>
+            <strong>Zone: (X,Y)➡️(X,Y) </strong>
           </small>
         </div>
 

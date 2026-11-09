@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyLittleRPG_Etape4.Data.Context;
+using MyLittleRPG_Etape4.Helpers;
 using MyLittleRPG_Etape4.Models;
 using MyLittleRPG_Etape4.Models.DTO;
 using System.IdentityModel.Tokens.Jwt;
@@ -40,12 +41,25 @@ namespace MyLittleRPG_Etape4.Controllers
             //set pwd to hashed request pwd input
             user.MotDePasse = _hasher.HashPassword(user, r.MotDePasse);
 
+            //get starting valid tile
+            int startX = 10;
+            int startY = 10;
+            Tile start = await TileHelper.GetOrCreateTile(_context, startX, startY);
+            while (!start.IsTraversable && startX < WorldConfig.Width - 1)
+            {
+                startX++;
+                start = await TileHelper.GetOrCreateTile(_context, startX, startY);
+            }
+
             // créer perso du user
-            user.Personnage = new Personnage { Nom = user.Pseudo };
+            user.Personnage = new Personnage { Nom = user.Pseudo, PositionX = startX, PositionY = startY };
 
             //Save all (perso+user)
             _context.Utilisateur.Add(user);
             await _context.SaveChangesAsync();
+
+            //explorer autour du point de départ après save pour id
+            await TileHelper.GetNeighboringTiles(_context, user.Personnage);
 
             //200 ok
             return StatusCode(StatusCodes.Status201Created, new { user.idUtilisateur, user.Pseudo });

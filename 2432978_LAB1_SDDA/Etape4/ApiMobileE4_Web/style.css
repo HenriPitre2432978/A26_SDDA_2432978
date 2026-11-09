@@ -38,3 +38,14 @@ main {
   height: 100%;
   object-fit: cover;
 }
+
+/* case du perso */
+.tile-perso {
+  outline: 3px solid gold;
+  outline-offset: -3px;
+}
+
+/* hors du monde */
+.tile-vide {
+  opacity: 20%;
+}

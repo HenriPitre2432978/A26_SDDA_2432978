@@ -9,6 +9,7 @@ namespace MyLittleRPG_Etape4.Data.Context
         public DbSet<Tile> Tile { get; set; }
         public DbSet<Utilisateur> Utilisateur { get; set; }
         public DbSet<Personnage> Personnage { get; set; }
+        public DbSet<TuileExploree> TuileExploree { get; set; }
         public RPGContext(DbContextOptions<RPGContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

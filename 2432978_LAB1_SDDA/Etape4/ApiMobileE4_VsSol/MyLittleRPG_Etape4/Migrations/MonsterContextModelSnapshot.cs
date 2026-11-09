@@ -137,6 +137,22 @@ namespace MyLittleRPG_Etape4.Migrations
                     b.ToTable("Tile");
                 });
 
+            modelBuilder.Entity("MyLittleRPG_Etape4.Models.TuileExploree", b =>
+                {
+                    b.Property<int>("idPersonnage")
+                        .HasColumnType("int");
+
+                    b.Property<int>("X")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("int");
+
+                    b.HasKey("idPersonnage", "X", "Y");
+
+                    b.ToTable("TuileExploree");
+                });
+
             modelBuilder.Entity("MyLittleRPG_Etape4.Models.Utilisateur", b =>
                 {
                     b.Property<int>("idUtilisateur")

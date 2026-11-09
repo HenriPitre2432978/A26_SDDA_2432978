@@ -4,67 +4,235 @@ const API_BASE_URL = "https://localhost:64984";
 const WORLD_WIDTH = 50;
 const WORLD_HEIGHT = 50;
 
-// arte affichée (coin haut-gauche + taille)
+// carte affichée 5x5, centrée sur le perso
 const SQUARE_VIEW = 5;
-let MiddleXView = 10;
-let MiddleYView = 10;
+const VISION = 2;
+
+let personnage = null;
 
 //Fct au démarrage (loading)
 $(function () {
-  let $startTuile;
-
   majInfosStatiques();
 
-  for (let y = MiddleYView; y < MiddleYView + SQUARE_VIEW; y++) {
-    for (let x = MiddleXView; x < MiddleXView + SQUARE_VIEW; x++) {
+  // déja connecté avant (token gardé dans le navigateur)
+  if (localStorage.getItem("token")) {
+    chargerPersonnage();
+  } else {
+    afficherConnexion();
+  }
+});
+
+// #region Connexion / Inscription
+
+$("#form-login").on("submit", function (e) {
+  e.preventDefault();
+
+  connexion($("#login-email").val(), $("#login-mdp").val());
+});
+
+$("#form-register").on("submit", function (e) {
+  e.preventDefault();
+
+  const email = $("#register-email").val();
+  const mdp = $("#register-mdp").val();
+
+  appelApi("POST", "/api/Auth/register", {
+    email: email,
+    motDePasse: mdp,
+    pseudo: $("#register-pseudo").val(),
+  })
+    .done(function () {
+      // connecte direct après l'inscription
+      connexion(email, mdp);
+    })
+    .fail(function (xhr) {
+      $("#auth-message").text(messageErreur(xhr));
+    });
+});
+
+$("#btn-logout").on("click", function () {
+  appelApi("POST", "/api/Auth/logout").always(function () {
+    // le serveur garde pas le token, c'est le client qui l'oublie
+    localStorage.removeItem("token");
+    personnage = null;
+    afficherConnexion();
+  });
+});
+
+function connexion(email, mdp) {
+  appelApi("POST", "/api/Auth/login", { email: email, motDePasse: mdp })
+    .done(function (data) {
+      localStorage.setItem("token", data.token);
+      $("#auth-message").text("");
+      chargerPersonnage();
+    })
+    .fail(function (xhr) {
+      $("#auth-message").text(messageErreur(xhr));
+    });
+}
+
+function afficherConnexion() {
+  $("#jeu").hide();
+  $("#btn-logout").hide();
+  $("#auth-section").show();
+}
+
+function afficherJeu() {
+  $("#auth-section").hide();
+  $("#jeu").show();
+  $("#btn-logout").show();
+}
+
+// #endregion
+
+// #region Personnage / Déplacement
+
+function chargerPersonnage() {
+  appelApi("GET", "/api/Personnage/self").done(function (data) {
+    afficherJeu();
+    majJeu(data);
+  });
+}
+
+$("#btn-nord").on("click", () => deplacer("N"));
+$("#btn-sud").on("click", () => deplacer("S"));
+$("#btn-est").on("click", () => deplacer("E"));
+$("#btn-ouest").on("click", () => deplacer("O"));
+$("#btn-actualiser").on("click", () => chargerPersonnage());
+
+function deplacer(direction) {
+  appelApi("POST", "/api/Personnage/deplacer", { direction: direction })
+    .done(function (data) {
+      $("#deplacement-message").text("");
+      majJeu(data);
+    })
+    .fail(function (xhr) {
+      // ex: eau, montagne, bord du monde
+      $("#deplacement-message").text(messageErreur(xhr));
+    });
+}
+
+// data = { personnage, tuiles } (meme réponse pour self et deplacer)
+function majJeu(data) {
+  personnage = data.personnage;
+
+  $("#perso-nom").text(personnage.nom);
+  $("#perso-niveau").text(personnage.niveau);
+  $("#perso-xp").text(personnage.experience);
+  $("#perso-pv").text(`${personnage.pointsVie} / ${personnage.pointsVieMax}`);
+  $("#perso-force").text(personnage.force);
+  $("#perso-defense").text(personnage.defense);
+  $("#perso-pos").text(`(${personnage.positionX}, ${personnage.positionY})`);
+  $("#posTop").text(`(${personnage.positionX}, ${personnage.positionY})`);
+
+  dessinerCarte(data.tuiles);
+  majInfosStatiques();
+}
+
+// #endregion
+
+// #region Carte
+
+function dessinerCarte(tuiles) {
+  $("#map-grid").empty();
+
+  for (let y = personnage.positionY - VISION; y <= personnage.positionY + VISION; y++) {
+    for (let x = personnage.positionX - VISION; x <= personnage.positionX + VISION; x++) {
       const $tuile = creerTuile(x, y);
-      if (x === MiddleXView && y === MiddleYView) {
-        $startTuile = $tuile;
+
+      if (x === personnage.positionX && y === personnage.positionY) {
+        $tuile.addClass("tile-perso");
+      }
+
+      const data = tuiles.find((t) => t.x === x && t.y === y);
+      if (data) {
+        afficherTuile($tuile, data);
       }
     }
   }
+}
 
-  chargerTuile(MiddleXView, MiddleYView, $startTuile).done(function () {
-    const neighbors = getNeighboringTiles(
-      MiddleXView,
-      MiddleYView,
-      WORLD_WIDTH,
-      WORLD_HEIGHT,
-    );
-    for (const n of neighbors) {
-      if (
-        n.x < MiddleXView ||
-        n.x >= MiddleXView + SQUARE_VIEW ||
-        n.y < MiddleYView ||
-        n.y >= MiddleYView + SQUARE_VIEW
-      )
-        continue;
-
-      const $neighborTuile = creerTuile(n.x, n.y);
-      chargerTuile(n.x, n.y, $neighborTuile);
-    }
-  });
-});
 $("#map-grid").on("click", ".tile", function () {
   const $tuile = $(this);
   const x = $tuile.data("x");
   const y = $tuile.data("y");
 
+  if ($tuile.hasClass("tile-vide")) return;
+
   if ($tuile.hasClass("tile-loaded")) {
     afficherSelection($tuile.data("tuileInfo"), x, y);
   } else {
-    chargerTuile(x, y, $tuile).done(function (data) {
-      afficherSelection(data, x, y);
-    });
+    explorerTuile(x, y, $tuile);
   }
 });
+
+function explorerTuile(x, y, $tuile) {
+  appelApi("POST", `/api/Personnage/explorer/${x}/${y}`)
+    .done(function (data) {
+      afficherTuile($tuile, data);
+      afficherSelection(data, x, y);
+    })
+    .fail(function (xhr) {
+      $("#deplacement-message").text(messageErreur(xhr));
+    });
+}
+
+function creerTuile(x, y) {
+  let $tuile = $("<button> </button>");
+  $tuile.addClass("tile tile-unloaded");
+  $tuile.attr("data-x", x);
+  $tuile.attr("data-y", y);
+  $tuile.text("?");
+
+  // case hors du monde
+  if (x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT) {
+    $tuile.addClass("tile-vide").text("");
+  }
+
+  $tuile.appendTo("#map-grid");
+  return $tuile;
+}
+
+function afficherTuile($tuile, data) {
+  $tuile.data("tuileInfo", data);
+  $tuile.removeClass("tile-unloaded").addClass("tile-loaded");
+  majTuilesChargees();
+
+  if (data.imgUrl) {
+    const $img = $("<img>", {
+      src: API_BASE_URL + data.imgUrl,
+      alt: `${data.description} ${data.typeTxt}`,
+      class: "tile-img",
+    });
+    $tuile.empty().append($img);
+  } else {
+    //fallback img not working
+    $tuile.text(data.typeTxt);
+  }
+}
+
+function afficherSelection(data, x, y) {
+  $("#tuile-pos-value").text(`(${x}, ${y})`);
+  $("#tuile-type-value").text(data.typeTxt);
+  $("#tuile-passable-value").text(data.isTraversable ? "✅" : "❌");
+  $("#tuile-desc-value").text(
+    data.description || `Tuile ${data.typeTxt} en position (${x},${y})`,
+  );
+}
+
+// #endregion
+
+// #region Infos
 
 function majInfosStatiques() {
   $("#info-taille-value").text(`${WORLD_WIDTH} × ${WORLD_HEIGHT}`);
   $("#info-zone-value").text(`${SQUARE_VIEW}x${SQUARE_VIEW} tuiles`);
-  $("#zone-affiche").html(
-    `<strong>Zone: (${MiddleXView},${MiddleYView})➡️(${MiddleXView + SQUARE_VIEW - 1},${MiddleYView + SQUARE_VIEW - 1})</strong>`,
-  );
+
+  if (personnage) {
+    $("#zone-affiche").html(
+      `<strong>Zone: (${personnage.positionX - VISION},${personnage.positionY - VISION})➡️(${personnage.positionX + VISION},${personnage.positionY + VISION})</strong>`,
+    );
+  }
   majTuilesChargees();
 }
 
@@ -80,76 +248,45 @@ function majStatutApi(ok) {
     .css("color", ok ? "limegreen" : "red");
 }
 
-function afficherSelection(data, x, y) {
-  $("#posTop").text(`(${x}, ${y})`);
-  $("#tuile-pos-value").text(`(${x}, ${y})`);
-  $("#tuile-type-value").text(data.typeTxt);
-  $("#tuile-passable-value").text(data.isTraversable ? "✅" : "❌");
-  $("#tuile-desc-value").text(
-    data.description || `Tuile ${data.typeTxt} en position (${x},${y})`,
-  );
-}
+// #endregion
 
-function creerTuile(x, y) {
-  const $existing = $(`.tile[data-x="${x}"][data-y="${y}"]`);
-  if ($existing.length) return $existing;
+// #region Appels API
 
-  let $tuile = $("<button> </button>");
-  $tuile.addClass("tile tile-unloaded");
-  $tuile.attr("data-x", x);
-  $tuile.attr("data-y", y);
-  $tuile.text("?");
-  $tuile.appendTo("#map-grid");
-  return $tuile;
-}
+// tous les appels passent ici pour ajouter le token
+function appelApi(method, url, body) {
+  const token = localStorage.getItem("token");
 
-function chargerTuile(x, y, $tuile) {
-  return $.getJSON(`${API_BASE_URL}/api/Tile/${x}/${y}`)
-    .done(function (data) {
-      $tuile.data("tuileInfo", data);
-      $tuile.removeClass("tile-unloaded").addClass("tile-loaded");
+  return $.ajax({
+    method: method,
+    url: API_BASE_URL + url,
+    contentType: "application/json",
+    data: body ? JSON.stringify(body) : undefined,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+    .done(function () {
       majStatutApi(true);
-      majTuilesChargees();
-
-      if (data.imgUrl) {
-        const $img = $("<img>", {
-          src: API_BASE_URL + data.imgUrl,
-          alt: `${data.description} ${data.typeTxt}`,
-          class: "tile-img",
-        });
-        $tuile.empty().append($img);
-      } else {
-        //fallback img not working
-        $tuile.text(data.typeTxt);
-      }
     })
-    .fail(function (xhr, textStatus, error) {
-      // 404 = hors du monde, l'API répond quand même
+    .fail(function (xhr) {
       majStatutApi(xhr.status !== 0);
-      console.error(
-        `[Grid Error] Could not load position (${x}, ${y}):`,
-        error,
-      );
+
+      // token expiré ou invalide = retour à la connexion
+      if (xhr.status === 401 && token) {
+        localStorage.removeItem("token");
+        afficherConnexion();
+      }
     });
 }
 
-function getNeighboringTiles(x, y, worldWidth, worldHeight) {
-  const neighbors = [];
+function messageErreur(xhr) {
+  if (xhr.responseJSON && xhr.responseJSON.message) return xhr.responseJSON.message;
 
-  for (let dx = -1; dx <= 1; dx++) {
-    for (let dy = -1; dy <= 1; dy++) {
-      // loop over center
-      if (dx === 0 && dy === 0) continue;
-
-      const nX = x + dx;
-      const nY = y + dy;
-
-      // verify if neighbor is in boundaries
-      if (nX >= 0 && nX < worldWidth && nY >= 0 && nY < worldHeight) {
-        neighbors.push({ x: nX, y: nY });
-      }
-    }
+  // erreurs de validation du model ([Required], [MinLength], ...)
+  if (xhr.responseJSON && xhr.responseJSON.errors) {
+    return Object.values(xhr.responseJSON.errors).flat().join(" ");
   }
 
-  return neighbors;
+  if (xhr.status === 0) return "API inaccessible.";
+  return "Erreur " + xhr.status;
 }
+
+// #endregion
