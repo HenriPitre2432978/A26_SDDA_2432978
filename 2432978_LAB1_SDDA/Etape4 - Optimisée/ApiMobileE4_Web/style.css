@@ -1,0 +1,76 @@
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+aside {
+  flex: 1 1 300px;
+}
+
+main {
+  flex: 3 1 500px; /* takes ~3x more space; wraps below when < 500px fits */
+  min-width: 0;
+}
+
+#map-grid {
+  padding: 2%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 3px;
+}
+
+#map-grid > * {
+  aspect-ratio: 1/1;
+}
+
+.tile {
+  border-radius: 5%;
+  aspect-ratio: 1;
+  color: white;
+  background-color: black;
+  opacity: 100%;
+  font-size: 100%;
+}
+
+.tile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* case du perso */
+.tile-perso {
+  outline: 3px solid gold;
+  outline-offset: -3px;
+}
+
+/* hors du monde */
+.tile-vide {
+  opacity: 20%;
+}
+
+/* Stats & Legendes */
+.stat-row {
+  /*Conversion de bootstrap à CSS réalisé par IA (Gemini)*/
+  border-radius: 0.5rem; /* rounded-3 (8px) */
+  display: flex; /* d-flex */
+  justify-content: space-between; /* justify-content-between */
+  background-color: rgba(255, 255, 255, 0.1); /* bg-white + bg-opacity-10 */
+  padding: 0.5rem; /* p-2 (8px) */
+}
+
+.icon-row {
+  /*Conversion de bootstrap à CSS réalisé par IA (Gemini)*/
+  align-items: center;
+  justify-content: flex-start; /* Keeps icon and text together on the left */
+  margin-bottom: 0.5rem; /* Fixed: added 'rem' unit (equals mb-2) */
+  gap: 0.5rem; /* Fixed: added 'rem' unit (equals gap-2) */
+}
+
+.legend-icon {
+  width: 16px;
+  height: 16px;
+  background-color: limegreen;
+  display: inline-block;
+}
