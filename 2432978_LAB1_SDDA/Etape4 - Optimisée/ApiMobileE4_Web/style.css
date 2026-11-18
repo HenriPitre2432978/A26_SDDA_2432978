@@ -26,11 +26,8 @@ main {
 
 .tile {
   border-radius: 5%;
-  aspect-ratio: 1;
   color: white;
   background-color: black;
-  opacity: 100%;
-  font-size: 100%;
 }
 
 .tile-img {
@@ -43,6 +40,21 @@ main {
 .tile-perso {
   outline: 3px solid gold;
   outline-offset: -3px;
+}
+
+.tile-bloquee {
+  outline: 3px solid red;
+  outline-offset: -3px;
+}
+
+.legend-bloquee {
+  background-color: transparent;
+  outline: 2px solid red;
+}
+
+.legend-perso {
+  background-color: transparent;
+  outline: 2px solid gold;
 }
 
 /* hors du monde */
