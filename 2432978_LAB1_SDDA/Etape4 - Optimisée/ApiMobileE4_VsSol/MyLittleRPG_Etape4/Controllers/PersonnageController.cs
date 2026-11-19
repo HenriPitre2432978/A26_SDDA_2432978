@@ -61,7 +61,7 @@ namespace MyLittleRPG_Etape4.Controllers
                 return BadRequest(new { message = "Cette tuile n'existe pas." });
 
             if (!tile.IsTraversable)
-                return BadRequest(new { message = $"Impossible de traverser: {tile.TypeTxt}." });
+                return BadRequest(new { message = $"Impossible de traverser: {tile.Type}." });
 
             perso.PositionX = x;
             perso.PositionY = y;
