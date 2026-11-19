@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyLittleRPG_Etape4.Data.Context;
 using MyLittleRPG_Etape4.Helpers;
 using MyLittleRPG_Etape4.Models;
 using MyLittleRPG_Etape4.Models.DTO;
 using System.Security.Claims;
+using static MyLittleRPG_Etape4.Models.DTO.GameDTOs;
 
 namespace MyLittleRPG_Etape4.Controllers
 {
@@ -16,13 +17,15 @@ namespace MyLittleRPG_Etape4.Controllers
     {
         private readonly RPGContext _context = context;
 
+        private static readonly object baseError = new { message = "Personnage introuvable." };
+
         // GET api/Personnage/self
         [HttpGet("self")]
         public async Task<IActionResult> GetSelfPersonnage()
         {
             var perso = await GetPersonnage();
             if (perso == null)
-                return NotFound();
+                return NotFound(baseError);
 
             return Ok(await MyData(perso));
         }
@@ -33,13 +36,13 @@ namespace MyLittleRPG_Etape4.Controllers
         {
             var perso = await GetPersonnage();
             if (perso == null)
-                return NotFound();
+                return NotFound(baseError);
 
             //perso mort peut pas bouger
             if (perso.PointsVie <= 0)
                 return BadRequest(new { message = "Votre personnage est mort. Envoyez un transfert de 200$ à 2432978@etu.cchic.ca pour le réanimer et bouger." });
 
-            //case visée dist 1 
+            //move = ++ ou -- car DTO empêche movement < 1 de distance
             int x = perso.PositionX;
             int y = perso.PositionY;
             switch (r.Direction.ToUpper())
@@ -48,8 +51,6 @@ namespace MyLittleRPG_Etape4.Controllers
                 case "S": y++; break;
                 case "E": x++; break;
                 case "O": x--; break;
-                default:
-                    return BadRequest(new { message = "Direction invalide (N, S, E ou O)." });
             }
 
             if (!WorldConfig.IsValid(x, y))
@@ -64,10 +65,10 @@ namespace MyLittleRPG_Etape4.Controllers
 
             perso.PositionX = x;
             perso.PositionY = y;
-            await _context.SaveChangesAsync();
 
             //explore auto les 8 tuiles autour
             await TileHelper.GetNeighboringTiles(_context, perso);
+            await _context.SaveChangesAsync();
 
             //send back ok avec details (optimiser requete)
             return Ok(await MyData(perso));
@@ -79,7 +80,7 @@ namespace MyLittleRPG_Etape4.Controllers
         {
             var perso = await GetPersonnage();
             if (perso == null)
-                return NotFound();
+                return NotFound(baseError);
 
             if (!WorldConfig.IsValid(x, y))
                 return BadRequest(new { message = "Hors du monde." });
@@ -88,11 +89,20 @@ namespace MyLittleRPG_Etape4.Controllers
             if (Math.Abs(x - perso.PositionX) > WorldConfig.Vision || Math.Abs(y - perso.PositionY) > WorldConfig.Vision)
                 return BadRequest(new { message = "Cette tuile est trop loin." });
 
+            //check if tile is already found to avoid a db request
+            TuileExploree? foundTile = await _context.TuileExploree
+                .Include(e => e.Tile)
+                .FirstOrDefaultAsync(e => e.idPersonnage == perso.idPersonnage && e.X == x && e.Y == y);
+
+            //Return DTO of tile that's found
+            if (foundTile != null)
+                return Ok(TuileDto.From(foundTile.Tile));
+
             var tile = await TileHelper.GetOrCreateTile(_context, x, y);
-            await TileHelper.MarquerExploree(_context, perso.idPersonnage, x, y);
+            _context.TuileExploree.Add(new TuileExploree { idPersonnage = perso.idPersonnage, X = x, Y = y });
             await _context.SaveChangesAsync();
 
-            return Ok(tile);
+            return Ok(TuileDto.From(tile));
         }
 
         //Find first character of current authroized user
@@ -102,33 +112,10 @@ namespace MyLittleRPG_Etape4.Controllers
             return await _context.Personnage.FirstOrDefaultAsync(p => p.utilisateurID == userId);
         }
 
-        /// <summary>
-        /// Get all relevant game data for specified perosnnage
-        /// </summary>
-        /// <param name="perso">le personnage en ligne</param>
-        /// <returns>new obj avec infos personnage et tuiles chargées</returns>
-        private async Task<object> MyData(Personnage perso)
-        {
-            return new
-            {
-                personnage = new
-                {
-                    perso.idPersonnage,
-                    perso.Nom,
-                    perso.Niveau,
-                    perso.Experience,
-                    perso.PointsVie,
-                    perso.PointsVieMax,
-                    perso.Force,
-                    perso.Defense,
-                    perso.PositionX,
-                    perso.PositionY
-                },
-                tuiles = await TileHelper.GetTuilesVisibles(_context, perso)
-            };
-        }
+        //toutes les infos de jeu du perso: stats + tuiles visibles
+        private async Task<JeuDto> MyData(Personnage perso)
+            => new(PersonnageDto.From(perso), await TileHelper.GetTuilesVisibles(_context, perso));
 
         private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     }
 }

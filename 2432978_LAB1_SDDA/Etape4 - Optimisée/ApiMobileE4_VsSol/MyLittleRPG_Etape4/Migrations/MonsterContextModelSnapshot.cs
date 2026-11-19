@@ -114,10 +114,6 @@ namespace MyLittleRPG_Etape4.Migrations
                     b.Property<int>("Y")
                         .HasColumnType("int");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("ImgUrl")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -127,10 +123,6 @@ namespace MyLittleRPG_Etape4.Migrations
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
-
-                    b.Property<string>("TypeTxt")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.HasKey("X", "Y");
 
@@ -149,6 +141,8 @@ namespace MyLittleRPG_Etape4.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("idPersonnage", "X", "Y");
+
+                    b.HasIndex("X", "Y");
 
                     b.ToTable("TuileExploree");
                 });
@@ -194,6 +188,23 @@ namespace MyLittleRPG_Etape4.Migrations
                         .IsRequired();
 
                     b.Navigation("Utilisateur");
+                });
+
+            modelBuilder.Entity("MyLittleRPG_Etape4.Models.TuileExploree", b =>
+                {
+                    b.HasOne("MyLittleRPG_Etape4.Models.Personnage", null)
+                        .WithMany()
+                        .HasForeignKey("idPersonnage")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyLittleRPG_Etape4.Models.Tile", "Tile")
+                        .WithMany()
+                        .HasForeignKey("X", "Y")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tile");
                 });
 
             modelBuilder.Entity("MyLittleRPG_Etape4.Models.Utilisateur", b =>

@@ -9,5 +9,8 @@ namespace MyLittleRPG_Etape4.Models
         public int idPersonnage { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
+
+        //Use X, Y to get Actual Tile obj (une sorte de shortcut)
+        public Tile Tile { get; set; } = null;
     }
 }

@@ -28,6 +28,19 @@ namespace MyLittleRPG_Etape4.Data.Context
                 .HasForeignKey<Personnage>(p => p.utilisateurID)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // personnage = * tuilexploree, deleted if perso is deleted
+            modelBuilder.Entity<TuileExploree>()
+                .HasOne<Personnage>() //1 perso
+                .WithMany() // pour * tuilexplorees
+                .HasForeignKey(e => e.idPersonnage) //lié à personnage
+                .OnDelete(DeleteBehavior.Cascade); //cascade delete
+
+            modelBuilder.Entity<TuileExploree>()
+                .HasOne(e => e.Tile) //1 tuile
+                .WithMany() //pour * tuile exporees
+                .HasForeignKey(e => new { e.X, e.Y }) //fk
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

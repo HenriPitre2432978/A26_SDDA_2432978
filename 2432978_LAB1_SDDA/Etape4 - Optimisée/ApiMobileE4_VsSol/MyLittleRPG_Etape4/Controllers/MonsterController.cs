@@ -1,93 +1,103 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MyLittleRPG_Etape4.Data.Context;
-using MyLittleRPG_Etape4.Models;
 
-namespace MyLittleRPG_Etape4.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    public class MonsterController : ControllerBase
-    {
-        private readonly RPGContext _context;
-        public MonsterController(RPGContext context) => _context = context;
+/*
+ 
+Fichié complètement commenté pour garantir l'intégrité des Monster. Actuellement, 
+l'application n'utilise pas ce contrôleur 
+alors personne n'a besoin d'y accéder
+
+ */
 
 
-        //GET api/Monsters
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Monster>>> GetMonster()
-            => Ok(await _context.Monster.ToListAsync());
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.EntityFrameworkCore;
+//using MyLittleRPG_Etape4.Data.Context;
+//using MyLittleRPG_Etape4.Models;
 
-        //GET api/Monsters/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Monster>> GetMonster(int id)
-        {
-            var monster = await _context.Monster.FindAsync(id);
+//namespace MyLittleRPG_Etape4.Controllers
+//{
+//    [ApiController]
+//    [Route("api/[controller]")]
+//    public class MonsterController : ControllerBase
+//    {
+//        private readonly RPGContext _context;
+//        public MonsterController(RPGContext context) => _context = context;
 
-            if (monster == null)
-                return NotFound();
 
-            return monster;
-        }
+//        //GET api/Monsters
+//        [HttpGet]
+//        public async Task<ActionResult<IEnumerable<Monster>>> GetMonster()
+//            => Ok(await _context.Monster.ToListAsync());
 
-        //PUT api/Monsters/5
-        [HttpPut("{id}")]
-        public async Task<ActionResult<Monster>> PutMonster(int id, Monster m)
-        {
-            if (id != m.idMonster)
-                return BadRequest();
+//        //GET api/Monsters/5
+//        [HttpGet("{id}")]
+//        public async Task<ActionResult<Monster>> GetMonster(int id)
+//        {
+//            var monster = await _context.Monster.FindAsync(id);
 
-            var newM = await _context.Monster.FindAsync(id);
-            if (newM == null)
-                return NotFound();
+//            if (monster == null)
+//                return NotFound();
 
-            newM.Nom = m.Nom;
+//            return monster;
+//        }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MonsterExists(id))
-                    return NotFound();
-                else
-                    throw;
-            }
+//        //PUT api/Monsters/5
+//        [HttpPut("{id}")]
+//        public async Task<ActionResult<Monster>> PutMonster(int id, Monster m)
+//        {
+//            if (id != m.idMonster)
+//                return BadRequest();
 
-            return NoContent();
+//            var newM = await _context.Monster.FindAsync(id);
+//            if (newM == null)
+//                return NotFound();
 
-        }
+//            newM.Nom = m.Nom;
 
-        //POST api/Monsters
-        [HttpPost]
-        public async Task<ActionResult<Monster>> PostMonster(Monster m)
-        {
-            _context.Monster.Add(m);
-            await _context.SaveChangesAsync();
+//            try
+//            {
+//                await _context.SaveChangesAsync();
+//            }
+//            catch (DbUpdateConcurrencyException)
+//            {
+//                if (!MonsterExists(id))
+//                    return NotFound();
+//                else
+//                    throw;
+//            }
 
-            return CreatedAtAction("GetMonster", new { id = m.idMonster }, m);
-        }
+//            return NoContent();
 
-        //DELETE api/Monsters/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Monster>> DeleteMonster(int id)
-        {
+//        }
 
-            var m = await _context.Monster.FindAsync(id);
-            if (m == null)
-                return NotFound();
+//        //POST api/Monsters
+//        [HttpPost]
+//        public async Task<ActionResult<Monster>> PostMonster(Monster m)
+//        {
+//            _context.Monster.Add(m);
+//            await _context.SaveChangesAsync();
 
-            _context.Monster.Remove(m);
-            await _context.SaveChangesAsync();
+//            return CreatedAtAction("GetMonster", new { id = m.idMonster }, m);
+//        }
 
-            return NoContent();
+//        //DELETE api/Monsters/5
+//        [HttpDelete("{id}")]
+//        public async Task<ActionResult<Monster>> DeleteMonster(int id)
+//        {
 
-        }
+//            var m = await _context.Monster.FindAsync(id);
+//            if (m == null)
+//                return NotFound();
 
-        private bool MonsterExists(int id)
-            => _context.Monster.Any(e => e.idMonster == id);
-    }
+//            _context.Monster.Remove(m);
+//            await _context.SaveChangesAsync();
 
-}
+//            return NoContent();
+
+//        }
+
+//        private bool MonsterExists(int id)
+//            => _context.Monster.Any(e => e.idMonster == id);
+//    }
+
+//}
 

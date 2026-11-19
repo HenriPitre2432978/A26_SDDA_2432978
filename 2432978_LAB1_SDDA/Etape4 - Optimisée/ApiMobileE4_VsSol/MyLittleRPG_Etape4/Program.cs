@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace MyLittleRPG_Etape4
 {
@@ -16,7 +17,7 @@ namespace MyLittleRPG_Etape4
             {
                 string connectionString = builder.Configuration.GetConnectionString("Default");
 
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 46)));
             });
 
             builder.Services.AddCors(options =>
@@ -27,6 +28,23 @@ namespace MyLittleRPG_Etape4
                           .AllowAnyMethod()
                           .AllowAnyHeader();
                 });
+            });
+
+            //anti brute force sur login/register block nb tries
+            builder.Services.AddRateLimiter(options =>
+            {
+                //error code to display
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                //what to do when error triggered
+                options.OnRejected = async (context, token) =>
+                    await context.HttpContext.Response.WriteAsJsonAsync(new { message = "Trop de tentatives. Veuillez réessayer ultérieurement." }, token);
+
+                //define ratelimiter details : limit of 5, block for 1min.
+                options.AddPolicy("auth", httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1) }));
             });
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -52,6 +70,19 @@ namespace MyLittleRPG_Etape4
 
             var app = builder.Build();
 
+            //avant error handler pour que les 500 restent avec header CORS
+            app.UseCors("AllowAllLocal");
+
+            //unhandled exception = 500
+            app.UseExceptionHandler(errorApp =>
+            {
+                errorApp.Run(async context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    await context.Response.WriteAsJsonAsync(new { message = "Erreur du serveur. Réessayez plus tard." });
+                });
+            });
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -61,10 +92,9 @@ namespace MyLittleRPG_Etape4
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
-            app.UseCors("AllowAllLocal");
-
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseRateLimiter();
             app.MapControllers();
 
             app.Run();

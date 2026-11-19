@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyLittleRPG_Etape4.Data.Context;
@@ -23,13 +24,14 @@ namespace MyLittleRPG_Etape4.Controllers
 
         // POST api/Auth/register
         [HttpPost("register")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register(RegisterRequest r)
         {
             string email = r.Email.Trim().ToLower();
 
             //find if unique existing email
             if (await _context.Utilisateur.AnyAsync(u => u.Email == email))
-                return BadRequest(new { message = "Un compte existe déjà avec ce courriel." });
+                return Conflict(new { message = "Un compte existe déjà avec ce courriel." });
 
             //Create user no pwd
             Utilisateur user = new()
@@ -42,17 +44,10 @@ namespace MyLittleRPG_Etape4.Controllers
             user.MotDePasse = _hasher.HashPassword(user, r.MotDePasse);
 
             //get starting valid tile
-            int startX = 10;
-            int startY = 10;
-            Tile start = await TileHelper.GetOrCreateTile(_context, startX, startY);
-            while (!start.IsTraversable && startX < WorldConfig.Width - 1)
-            {
-                startX++;
-                start = await TileHelper.GetOrCreateTile(_context, startX, startY);
-            }
+            Tile depart = await TileHelper.FindStartingTile(_context);
 
             // créer perso du user
-            user.Personnage = new Personnage { Nom = user.Pseudo, PositionX = startX, PositionY = startY };
+            user.Personnage = new Personnage { Nom = user.Pseudo, PositionX = depart.X, PositionY = depart.Y };
 
             //Save all (perso+user)
             _context.Utilisateur.Add(user);
@@ -60,13 +55,15 @@ namespace MyLittleRPG_Etape4.Controllers
 
             //explorer autour du point de départ après save pour id
             await TileHelper.GetNeighboringTiles(_context, user.Personnage);
+            await _context.SaveChangesAsync();
 
             //200 ok
-            return StatusCode(StatusCodes.Status201Created, new { user.idUtilisateur, user.Pseudo });
+            return StatusCode(StatusCodes.Status201Created, new { message = "Compte créé." });
         }
 
         // POST api/Auth/login
         [HttpPost("login")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Login(LoginRequest r)
         {
             string email = r.Email.Trim().ToLower();
@@ -82,7 +79,7 @@ namespace MyLittleRPG_Etape4.Controllers
                 return Unauthorized(new { message = "Courriel ou mot de passe invalide." });
 
             //200 OK et link le token à user
-            return Ok(new { token = CreerToken(user), pseudo = user.Pseudo });
+            return Ok(new { token = CreerToken(user) });
         }
 
         // créer token jwt

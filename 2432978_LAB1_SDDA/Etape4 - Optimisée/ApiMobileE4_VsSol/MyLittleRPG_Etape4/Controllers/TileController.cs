@@ -1,28 +1,36 @@
-using Microsoft.AspNetCore.Mvc;
-using MyLittleRPG_Etape4.Data.Context;
-using MyLittleRPG_Etape4.Helpers;
-using MyLittleRPG_Etape4.Models;
+/*
+ 
+Fichié complètement commenté pour éviter l'accès inutile à des informations de l'applicaiton. Actuellement, 
+l'application n'utilise pas ce contrôleur 
+alors personne n'a besoin d'y accéder
 
-namespace MyLittleRPG_Etape4.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    public class TileController : ControllerBase
-    {
-        private readonly RPGContext _context;
-        public TileController(RPGContext context) => _context = context;
+ */
 
-        //GET api/Tile/5/5
-        [HttpGet("{x}/{y}")]
-        public async Task<ActionResult<Tile>> GetTile(int x, int y)
-        {
-            if (!WorldConfig.IsValid(x, y))
-                return NotFound();
+//using Microsoft.AspNetCore.Mvc;
+//using MyLittleRPG_Etape4.Data.Context;
+//using MyLittleRPG_Etape4.Helpers;
+//using MyLittleRPG_Etape4.Models;
 
-            return await TileHelper.GetOrCreateTile(_context, x, y);
-        }
+//namespace MyLittleRPG_Etape4.Controllers
+//{
+//    [ApiController]
+//    [Route("api/[controller]")]
+//    public class TileController : ControllerBase
+//    {
+//        private readonly RPGContext _context;
+//        public TileController(RPGContext context) => _context = context;
 
-    }
+//        //GET api/Tile/5/5
+//        [HttpGet("{x}/{y}")]
+//        public async Task<ActionResult<Tile>> GetTile(int x, int y)
+//        {
+//            if (!WorldConfig.IsValid(x, y))
+//                return NotFound();
 
-}
+//            return await TileHelper.GetOrCreateTile(_context, x, y);
+//        }
+
+//    }
+
+//}
 

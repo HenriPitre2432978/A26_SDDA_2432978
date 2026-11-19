@@ -4,7 +4,7 @@ namespace MyLittleRPG_Etape4.Models.DTO
 {
     public class RegisterRequest
     {
-        [Required, EmailAddress, MaxLength(255)]
+        [Required, EmailAddress, MaxLength(100)]
         public string Email { get; set; } = string.Empty;
 
         [Required, MinLength(8), MaxLength(100)]
@@ -16,10 +16,10 @@ namespace MyLittleRPG_Etape4.Models.DTO
 
     public class LoginRequest
     {
-        [Required, EmailAddress]
+        [Required, EmailAddress, MaxLength(100)]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [Required, MaxLength(100)]
         public string MotDePasse { get; set; } = string.Empty;
     }
 }

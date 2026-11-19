@@ -17,7 +17,6 @@ namespace MyLittleRPG_Etape4.Models
         public int Force { get; set; } = 10;
         public int Defense { get; set; } = 5;
 
-        //Position de départ (à valider: la tuile doit être traversable)
         public int PositionX { get; set; } = 10;
         public int PositionY { get; set; } = 10;
 
