@@ -88,18 +88,20 @@ function afficherJeu() {
 
 // #region Personnage / Déplacement
 
-function chargerPersonnage($msgObj = $("#auth-message")) {
-  appelApi("GET", "/api/Personnage/self", null, $msgObj).done(function (data) {
-    afficherJeu();
-    majJeu(data);
-  });
+function chargerPersonnage() {
+  appelApi("GET", "/api/Personnage/self", null, $("#auth-message")).done(
+    function (data) {
+      afficherJeu();
+      majJeu(data);
+    },
+  );
 }
 
 $("#btn-nord").on("click", () => deplacer("N"));
 $("#btn-sud").on("click", () => deplacer("S"));
 $("#btn-est").on("click", () => deplacer("E"));
 $("#btn-ouest").on("click", () => deplacer("O"));
-$("#btn-actualiser").on("click", () => chargerPersonnage($("#deplacement-message")));
+$("#btn-actualiser").on("click", () => chargerPersonnage());
 
 function deplacer(direction) {
   appelApi(
@@ -112,25 +114,21 @@ function deplacer(direction) {
   });
 }
 
-// reponse = { personnage, tuiles } (meme réponse pour self et deplacer)
-function majJeu(reponse) {
-  personnage = reponse.personnage;
+// data = { personnage, tuiles } (meme réponse pour self et deplacer)
+function majJeu(data) {
+  personnage = data.personnage;
 
-  afficherStats(personnage);
-  dessinerCarte(reponse.tuiles);
-  majTuilesChargees();
-  majZone();
-}
+  $("#perso-nom").text(personnage.nom);
+  $("#perso-niveau").text(personnage.niveau);
+  $("#perso-xp").text(personnage.experience);
+  $("#perso-pv").text(`${personnage.pointsVie} / ${personnage.pointsVieMax}`);
+  $("#perso-force").text(personnage.force);
+  $("#perso-defense").text(personnage.defense);
+  $("#perso-pos").text(`(${personnage.positionX}, ${personnage.positionY})`);
+  $("#posTop").text(`(${personnage.positionX}, ${personnage.positionY})`);
 
-// juste les stats du perso dans le menu de gauche
-function afficherStats(perso) {
-  $("#perso-nom").text(perso.nom);
-  $("#perso-niveau").text(perso.niveau);
-  $("#perso-xp").text(perso.experience);
-  $("#perso-pv").text(`${perso.pointsVie} / ${perso.pointsVieMax}`);
-  $("#perso-force").text(perso.force);
-  $("#perso-defense").text(perso.defense);
-  $("#perso-pos").text(`(${perso.positionX}, ${perso.positionY})`);
+  dessinerCarte(data.tuiles);
+  majInfosStatiques();
 }
 
 // #endregion
@@ -156,9 +154,9 @@ function dessinerCarte(tuiles) {
         $tuile.addClass("tile-perso");
       }
 
-      const infoTuile = tuiles.find((t) => t.x === x && t.y === y);
-      if (infoTuile) {
-        afficherTuile($tuile, infoTuile);
+      const data = tuiles.find((t) => t.x === x && t.y === y);
+      if (data) {
+        afficherTuile($tuile, data);
       }
     }
   }
@@ -184,9 +182,9 @@ function explorerTuile(x, y, $tuile) {
     `/api/Personnage/explorer/${x}/${y}`,
     null,
     $("#deplacement-message"),
-  ).done(function (infoTuile) {
-    afficherTuile($tuile, infoTuile);
-    afficherSelection(infoTuile, x, y);
+  ).done(function (data) {
+    afficherTuile($tuile, data);
+    afficherSelection(data, x, y);
   });
 }
 
@@ -206,34 +204,30 @@ function creerTuile(x, y) {
   return $tuile;
 }
 
-function afficherTuile($tuile, infoTuile) {
-  $tuile.data("tuileInfo", infoTuile);
+function afficherTuile($tuile, data) {
+  $tuile.data("tuileInfo", data);
   $tuile.removeClass("tile-unloaded").addClass("tile-loaded");
+  majTuilesChargees();
 
-  if (infoTuile.isTraversable === false) {
-    $tuile.addClass("tile-bloquee");
-  }
-
-  if (infoTuile.imgUrl) {
+  if (data.imgUrl) {
     const $img = $("<img>", {
-      src: API_BASE_URL + infoTuile.imgUrl,
-      alt: `${infoTuile.description} ${infoTuile.typeTxt}`,
+      src: API_BASE_URL + data.imgUrl,
+      alt: `${data.description} ${data.typeTxt}`,
       class: "tile-img",
     });
     $tuile.empty().append($img);
   } else {
     //fallback img not working
-    $tuile.text(infoTuile.typeTxt);
+    $tuile.text(data.typeTxt);
   }
 }
 
-function afficherSelection(infoTuile, x, y) {
+function afficherSelection(data, x, y) {
   $("#tuile-pos-value").text(`(${x}, ${y})`);
-  $("#tuile-type-value").text(infoTuile.typeTxt);
-  $("#tuile-passable-value").text(infoTuile.isTraversable ? "✅" : "❌");
+  $("#tuile-type-value").text(data.typeTxt);
+  $("#tuile-passable-value").text(data.isTraversable ? "✅" : "❌");
   $("#tuile-desc-value").text(
-    infoTuile.description ||
-      `Tuile ${infoTuile.typeTxt} en position (${x},${y})`,
+    data.description || `Tuile ${data.typeTxt} en position (${x},${y})`,
   );
 }
 
@@ -244,15 +238,13 @@ function afficherSelection(infoTuile, x, y) {
 function majInfosStatiques() {
   $("#info-taille-value").text(`${WORLD_WIDTH} × ${WORLD_HEIGHT}`);
   $("#info-zone-value").text(`${SQUARE_VIEW}x${SQUARE_VIEW} tuiles`);
-}
 
-// update zone display around personnage
-function majZone() {
-  if (!personnage) return;
-
-  $("#zone-affiche").html(
-    `<strong>Zone: (${personnage.positionX - VISION},${personnage.positionY - VISION})➡️(${personnage.positionX + VISION},${personnage.positionY + VISION})</strong>`,
-  );
+  if (personnage) {
+    $("#zone-affiche").html(
+      `<strong>Zone: (${personnage.positionX - VISION},${personnage.positionY - VISION})➡️(${personnage.positionX + VISION},${personnage.positionY + VISION})</strong>`,
+    );
+  }
+  majTuilesChargees();
 }
 
 function majTuilesChargees() {
@@ -293,7 +285,7 @@ function appelApi(method, url, body, $msgObj) {
 
       // token expiré ou invalide = retour à la connexion
       if (xhr.status === 401 && token) {
-        $("#auth-message").text(
+        $("auth-message").text(
           "Votre connexion a expirée, veuillez vous reconnecter.",
         );
         localStorage.removeItem("token");

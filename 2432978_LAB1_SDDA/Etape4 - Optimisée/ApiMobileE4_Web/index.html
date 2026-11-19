@@ -40,6 +40,9 @@
         </h1>
         <p>
           Explorez le monde généré par votre API
+          <strong id="pos-header" style="display: none"
+            >| 📍: <span id="posTop">(X,Y)</span></strong
+          >
           <br />
           DÉMO: Courriel : admin@mylittlerpg.com / PWD: admin1234
         </p>
@@ -131,34 +134,34 @@
           </div>
           <div class="collapse" id="collapsePerso">
             <hr />
-            <p class="stat-row">
-              Nom:
-              <span id="perso-nom">-</span>
-            </p>
-            <p class="stat-row">
-              Niveau:
-              <span id="perso-niveau">-</span>
-            </p>
-            <p class="stat-row">
-              Expérience:
-              <span id="perso-xp">-</span>
-            </p>
-            <p class="stat-row">
-              Points de vie:
-              <span id="perso-pv">-</span>
-            </p>
-            <p class="stat-row">
-              Force:
-              <span id="perso-force">-</span>
-            </p>
-            <p class="stat-row">
-              Défense:
-              <span id="perso-defense">-</span>
-            </p>
-            <p class="stat-row">
-              Position:
-              <span id="perso-pos">-</span>
-            </p>
+          <p class="stat-row">
+            Nom:
+            <span id="perso-nom">-</span>
+          </p>
+          <p class="stat-row">
+            Niveau:
+            <span id="perso-niveau">-</span>
+          </p>
+          <p class="stat-row">
+            Expérience:
+            <span id="perso-xp">-</span>
+          </p>
+          <p class="stat-row">
+            Points de vie:
+            <span id="perso-pv">-</span>
+          </p>
+          <p class="stat-row">
+            Force:
+            <span id="perso-force">-</span>
+          </p>
+          <p class="stat-row">
+            Défense:
+            <span id="perso-defense">-</span>
+          </p>
+          <p class="stat-row">
+            Position:
+            <span id="perso-pos">-</span>
+          </p>
           </div>
         </div>
 
@@ -187,7 +190,11 @@
             </p>
             <p id="info-status" class="stat-row">
               Statut API:
-              <strong><span id="info-status-value">Vérification…</span></strong>
+              <strong
+                ><span id="info-status-value" style="color: limegreen"
+                  >Connecté</span
+                ></strong
+              >
             </p>
             <p id="info-chargees" class="stat-row">
               Tuiles chargées:
@@ -210,31 +217,31 @@
           </div>
           <div class="collapse" id="collapseNav">
             <hr />
-            <div class="d-flex flex-column align-items-center gap-2">
-              <button class="btn btn-light rounded-4 px-5 py-3" id="btn-nord">
-                N
+          <div class="d-flex flex-column align-items-center gap-2">
+            <button class="btn btn-light rounded-4 px-5 py-3" id="btn-nord">
+              N
+            </button>
+            <div class="d-flex gap-2">
+              <button
+                class="btn btn-light rounded-4 p-4 flex-fill px-4"
+                id="btn-ouest">
+                O
               </button>
-              <div class="d-flex gap-2">
-                <button
-                  class="btn btn-light rounded-4 p-4 flex-fill px-4"
-                  id="btn-ouest">
-                  O
-                </button>
-                <button
-                  class="btn btn-secondary rounded-4 p-3 flex-fill"
-                  id="btn-actualiser">
-                  🔄 Actualiser
-                </button>
-                <button
-                  class="btn btn-light rounded-4 p-4 flex-fill px-4"
-                  id="btn-est">
-                  E
-                </button>
-              </div>
-              <button class="btn btn-light rounded-4 px-5 py-3" id="btn-sud">
-                S
+              <button
+                class="btn btn-secondary rounded-4 p-3 flex-fill"
+                id="btn-actualiser">
+                🔄 Actualiser
+              </button>
+              <button
+                class="btn btn-light rounded-4 p-4 flex-fill px-4"
+                id="btn-est">
+                E
               </button>
             </div>
+            <button class="btn btn-light rounded-4 px-5 py-3" id="btn-sud">
+              S
+            </button>
+          </div>
           </div>
           <p
             id="deplacement-message"
@@ -311,28 +318,28 @@
           </div>
           <div class="collapse" id="collapseTuile">
             <hr />
-            <p id="tuile-pos" class="stat-row">
-              Position:
-              <span id="tuile-pos-value">-</span>
+          <p id="tuile-pos" class="stat-row">
+            Position:
+            <span id="tuile-pos-value">-</span>
+          </p>
+          <p id="tuile-type" class="stat-row">
+            Type:
+            <span id="tuile-type-value">-</span>
+          </p>
+          <p id="tuile-passable" class="stat-row">
+            Traversable:
+            <span id="tuile-passable-value">-</span>
+          </p>
+          <div class="bg-white bg-opacity-10 p-2 rounded-4">
+            <p
+              id="tuile-desc"
+              class="rounded-3 d-flex justify-content-between pt-2 px-2">
+              Description:
             </p>
-            <p id="tuile-type" class="stat-row">
-              Type:
-              <span id="tuile-type-value">-</span>
-            </p>
-            <p id="tuile-passable" class="stat-row">
-              Traversable:
-              <span id="tuile-passable-value">-</span>
-            </p>
-            <div class="bg-white bg-opacity-10 p-2 rounded-4">
-              <p
-                id="tuile-desc"
-                class="rounded-3 d-flex justify-content-between pt-2 px-2">
-                Description:
-              </p>
-              <div id="tuile-desc-value" class="stat-row">
-                Cliquez sur une tuile de la carte
-              </div>
+            <div id="tuile-desc-value" class="stat-row">
+              Cliquez sur une tuile de la carte
             </div>
+          </div>
           </div>
         </div>
         <!--#endregion-->
